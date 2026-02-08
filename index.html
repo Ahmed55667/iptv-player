@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مشغّل IPTV</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      margin: 0;
+      padding: 15px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #222;
+      color: white;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-label {
+      padding: 10px 15px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      min-width: 120px;
+    }
+    .file-label:hover {
+      background: #2980b9;
+    }
+    button {      padding: 10px 15px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    button:hover {
+      background: #c0392b;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+        gap: 15px;
+      }
+      #channel-list {
+        width: 30%;
+        max-height: 60vh;
+        overflow-y: auto;
+        background: #1a1a1a;
+        padding: 10px;
+        border-radius: 6px;
+      }
+      #player-container {
+        width: 70%;
+      }
+    }
+    #channel-list a {
+      display: block;
+      padding: 8px;
+      color: #ddd;
+      text-decoration: none;
+      border-bottom: 1px solid #333;
+    }
+    #channel-list a:hover {
+      background: #333;
+    }
+    video {
+      width: 100%;
+      background: black;
+      border-radius: 6px;
+    }
+    .loading {      text-align: center;
+      color: #aaa;
+      margin-top: 20px;
+    }
+    .tip {
+      font-size: 0.9em;
+      color: #777;
+      text-align: center;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <h2>مشغّل IPTV جاهز</h2>
+      <div class="input-group">
+        <input type="text" id="playlistUrl" placeholder="الصق رابط ملف .m3u هنا" value="" />
+        <button onclick="loadFromUrl()">تحميل من الرابط</button>
+      </div>
+      <div class="input-group">
+        <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="loadFromFile(this.files[0])" />
+        <label for="fileInput" class="file-label">رفع ملف من الهاتف</label>
+        <div class="tip">يدعم ملفات .m3u و .m3u8</div>
+      </div>
+      <div id="channel-list"></div>
+    </div>
+    <div id="player-container">
+      <video id="video" controls autoplay></video>
+      <div id="status" class="loading">جاهز للتشغيل</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    let channels = [];
+
+    function loadFromUrl() {
+      const url = document.getElementById('playlistUrl').value.trim();
+      if (!url) {
+        alert('الرجاء إدخال رابط صالح');
+        return;
+      }
+
+      document.getElementById('status').textContent = 'جارٍ تحميل القائمة...';
+      document.getElementById('channel-list').innerHTML = '';
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error('فشل تحميل الملف');          return response.text();
+        })
+        .then(text => parseM3U(text))
+        .then(list => {
+          channels = list;
+          renderChannels(list);
+          document.getElementById('status').textContent = `تم تحميل ${list.length} قناة`;
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('status').textContent = 'خطأ: ' + err.message;
+        });
+    }
+
+    function loadFromFile(file) {
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const text = e.target.result;
+          const list = parseM3U(text);
+          channels = list;
+          renderChannels(list);
+          document.getElementById('status').textContent = `تم تحميل ${list.length} قناة من الملف`;
+        } catch (err) {
+          console.error(err);
+          document.getElementById('status').textContent = 'خطأ في قراءة الملف';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function parseM3U(content) {
+      const lines = content.split('\n');
+      const channels = [];
+      let currentChannel = null;
+
+      for (let line of lines) {
+        line = line.trim();
+        if (!line || line.startsWith('#EXTM3U')) continue;
+
+        if (line.startsWith('#EXTINF')) {
+          const nameMatch = line.match(/,(.*)$/);
+          const name = nameMatch ? nameMatch[1].trim() : 'قناة غير معروفة';
+          currentChannel = { name };
+        } else if (line.startsWith('http') && currentChannel) {
+          currentChannel.url = line;
+          channels.push(currentChannel);
+          currentChannel = null;        }
+      }
+      return channels;
+    }
+
+    function renderChannels(list) {
+      const container = document.getElementById('channel-list');
+      if (list.length === 0) {
+        container.innerHTML = '<div style="color:#777;">لا توجد قنوات صالحة</div>';
+        return;
+      }
+      container.innerHTML = list.map((ch, i) =>
+        `<a href="#" onclick="playChannel(${i}); return false;">${ch.name}</a>`
+      ).join('');
+    }
+
+    function playChannel(index) {
+      const ch = channels[index];
+      const video = document.getElementById('video');
+      const status = document.getElementById('status');
+
+      if (!ch || !ch.url) return;
+
+      status.textContent = 'جارٍ التشغيل...';
+
+      // أوقف البث السابق إن وجد
+      if (video.hlsPlayer) {
+        video.hlsPlayer.destroy();
+        video.hlsPlayer = null;
+      }
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        video.hlsPlayer = hls;
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(e => console.log('Auto-play prevented:', e));
+          status.textContent = 'قيد التشغيل: ' + ch.name;
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          status.textContent = 'خطأ في التشغيل';
+          console.error(data);
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = ch.url;
+        video.addEventListener('loadedmetadata', () => {
+          video.play().catch(e => console.log('Auto-play prevented:', e));
+          status.textContent = 'قيد التشغيل: ' + ch.name;
+        }, { once: true });      } else {
+        status.textContent = 'المتصفح لا يدعم البث المباشر';
+      }
+    }
+  </script>
+</body>
+  </html>
