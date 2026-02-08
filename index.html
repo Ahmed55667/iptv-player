@@ -3,165 +3,224 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>مشغّل IPTV</title>
+  <title>مشغّل IPTV عصري</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #0f0f0f;
-      color: #fff;
-      margin: 0;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #f1f1f1;
       padding: 15px;
+      min-height: 100vh;
     }
-    h2 {
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      padding: 15px 0;
+    }
+    h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(90deg, #ff7e5f, #feb47b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #aaa;
+      font-size: 0.95rem;
+    }
+    .controls {
+      background: rgba(30, 30, 46, 0.8);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
     .input-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      display: flex;      gap: 10px;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
     input[type="text"] {
       flex: 1;
       min-width: 200px;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #444;
-      border-radius: 4px;
-      background: #222;
+      border-radius: 10px;
+      background: #2d2d44;
       color: white;
+      font-size: 1rem;
     }
     input[type="file"] {
       display: none;
     }
-    .file-label {
-      padding: 10px 15px;
-      background: #3498db;
-      color: white;
+    .btn {
+      padding: 12px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 10px;
+      font-weight: bold;
       cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #ff7e5f, #feb47b);
+      color: #1a1a2e;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 126, 95, 0.4);
+    }
+    .btn-secondary {
+      background: linear-gradient(90deg, #4facfe, #00f2fe);
+      color: white;
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+    }
+    .tip {
+      font-size: 0.85rem;
+      color: #bbb;
+      margin-top: 8px;
       text-align: center;
-      min-width: 120px;
     }
-    .file-label:hover {
-      background: #2980b9;
-    }
-    button {      padding: 10px 15px;
-      background: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      min-width: 100px;
-    }
-    button:hover {
-      background: #c0392b;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      max-width: 1000px;
-      margin: 0 auto;
+    .main-content {
+      display: flex;      flex-direction: column;
+      gap: 20px;
     }
     @media (min-width: 768px) {
-      .container {
+      .main-content {
         flex-direction: row;
-        gap: 15px;
       }
       #channel-list {
-        width: 30%;
+        width: 35%;
         max-height: 60vh;
         overflow-y: auto;
-        background: #1a1a1a;
-        padding: 10px;
-        border-radius: 6px;
       }
       #player-container {
-        width: 70%;
+        width: 65%;
       }
+    }
+    #channel-list {
+      background: rgba(30, 30, 46, 0.8);
+      padding: 15px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    #channel-list h3 {
+      margin-bottom: 12px;
+      color: #feb47b;
     }
     #channel-list a {
       display: block;
-      padding: 8px;
-      color: #ddd;
+      padding: 10px;
+      color: #f1f1f1;
       text-decoration: none;
-      border-bottom: 1px solid #333;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: rgba(50, 50, 70, 0.6);
+      transition: background 0.2s;
     }
     #channel-list a:hover {
-      background: #333;
+      background: rgba(255, 126, 95, 0.3);
+    }
+    #player-container {
+      background: rgba(30, 30, 46, 0.8);
+      padding: 15px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
     video {
       width: 100%;
+      height: auto;
       background: black;
-      border-radius: 6px;
+      border-radius: 10px;      display: block;
     }
-    .loading {      text-align: center;
+    #status {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.95rem;
       color: #aaa;
-      margin-top: 20px;
+      min-height: 24px;
     }
-    .tip {
-      font-size: 0.9em;
+    .empty {
       color: #777;
       text-align: center;
-      margin-top: 5px;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div>
-      <h2>مشغّل IPTV جاهز</h2>
+    <header>
+      <h1>📺 مشغّل IPTV عصري</h1>
+      <p class="subtitle">يدعم روابط M3U ورفع الملفات من الهاتف</p>
+    </header>
+
+    <div class="controls">
       <div class="input-group">
-        <input type="text" id="playlistUrl" placeholder="الصق رابط ملف .m3u هنا" value="" />
-        <button onclick="loadFromUrl()">تحميل من الرابط</button>
+        <input type="text" id="playlistUrl" placeholder="الصق رابط ملف .m3u هنا (مثال: https://iptv-org.github.io/iptv/index.m3u)" />
+        <button class="btn btn-primary" onclick="loadFromUrl()">تحميل من الرابط</button>
       </div>
       <div class="input-group">
-        <input type="file" id="fileInput" accept=".m3u,.m3u8" onchange="loadFromFile(this.files[0])" />
-        <label for="fileInput" class="file-label">رفع ملف من الهاتف</label>
-        <div class="tip">يدعم ملفات .m3u و .m3u8</div>
+        <input type="file" id="fileInput" accept="*/*" onchange="loadFromFile(this.files[0])" />
+        <label for="fileInput" class="btn btn-secondary">رفع ملف من الهاتف</label>
       </div>
-      <div id="channel-list"></div>
+      <p class="tip">✓ يدعم ملفات .m3u و .m3u8 — ✓ لا حاجة لحساب أو إنترنت بعد التحميل</p>
     </div>
-    <div id="player-container">
-      <video id="video" controls autoplay></video>
-      <div id="status" class="loading">جاهز للتشغيل</div>
+
+    <div class="main-content">
+      <div id="channel-list">
+        <h3>القنوات</h3>
+        <div id="channels-container" class="empty">لم يتم تحميل أي قنوات بعد</div>
+      </div>
+      <div id="player-container">
+        <video id="video" controls></video>
+        <div id="status">جاهز للتشغيل</div>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     let channels = [];
-
     function loadFromUrl() {
       const url = document.getElementById('playlistUrl').value.trim();
       if (!url) {
         alert('الرجاء إدخال رابط صالح');
         return;
       }
-
-      document.getElementById('status').textContent = 'جارٍ تحميل القائمة...';
-      document.getElementById('channel-list').innerHTML = '';
-
+      setStatus('جارٍ تحميل القائمة...');
       fetch(url)
         .then(response => {
-          if (!response.ok) throw new Error('فشل تحميل الملف');          return response.text();
+          if (!response.ok) throw new Error('فشل تحميل الملف');
+          return response.text();
         })
         .then(text => parseM3U(text))
         .then(list => {
           channels = list;
           renderChannels(list);
-          document.getElementById('status').textContent = `تم تحميل ${list.length} قناة`;
+          setStatus(`تم تحميل ${list.length} قناة`);
         })
         .catch(err => {
           console.error(err);
-          document.getElementById('status').textContent = 'خطأ: ' + err.message;
+          setStatus('خطأ: ' + err.message);
         });
     }
 
     function loadFromFile(file) {
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
@@ -169,10 +228,10 @@
           const list = parseM3U(text);
           channels = list;
           renderChannels(list);
-          document.getElementById('status').textContent = `تم تحميل ${list.length} قناة من الملف`;
+          setStatus(`تم تحميل ${list.length} قناة من الملف`);
         } catch (err) {
           console.error(err);
-          document.getElementById('status').textContent = 'خطأ في قراءة الملف';
+          setStatus('خطأ في قراءة الملف');
         }
       };
       reader.readAsText(file);
@@ -184,8 +243,7 @@
       let currentChannel = null;
 
       for (let line of lines) {
-        line = line.trim();
-        if (!line || line.startsWith('#EXTM3U')) continue;
+        line = line.trim();        if (!line || line.startsWith('#EXTM3U')) continue;
 
         if (line.startsWith('#EXTINF')) {
           const nameMatch = line.match(/,(.*)$/);
@@ -194,15 +252,16 @@
         } else if (line.startsWith('http') && currentChannel) {
           currentChannel.url = line;
           channels.push(currentChannel);
-          currentChannel = null;        }
+          currentChannel = null;
+        }
       }
       return channels;
     }
 
     function renderChannels(list) {
-      const container = document.getElementById('channel-list');
+      const container = document.getElementById('channels-container');
       if (list.length === 0) {
-        container.innerHTML = '<div style="color:#777;">لا توجد قنوات صالحة</div>';
+        container.innerHTML = '<div class="empty">لا توجد قنوات صالحة</div>';
         return;
       }
       container.innerHTML = list.map((ch, i) =>
@@ -213,13 +272,11 @@
     function playChannel(index) {
       const ch = channels[index];
       const video = document.getElementById('video');
-      const status = document.getElementById('status');
+      if (!ch?.url) return;
 
-      if (!ch || !ch.url) return;
+      setStatus('جارٍ التشغيل...');
 
-      status.textContent = 'جارٍ التشغيل...';
-
-      // أوقف البث السابق إن وجد
+      // تدمير البث السابق
       if (video.hlsPlayer) {
         video.hlsPlayer.destroy();
         video.hlsPlayer = null;
@@ -231,21 +288,24 @@
         hls.loadSource(ch.url);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(e => console.log('Auto-play prevented:', e));
-          status.textContent = 'قيد التشغيل: ' + ch.name;
+          video.play().catch(() => {});
+          setStatus('قيد التشغيل: ' + ch.name);
         });
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          status.textContent = 'خطأ في التشغيل';
-          console.error(data);
-        });
+        hls.on(Hls.Events.ERROR, () => {
+          setStatus('خطأ في تشغيل القناة');        });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = ch.url;
         video.addEventListener('loadedmetadata', () => {
-          video.play().catch(e => console.log('Auto-play prevented:', e));
-          status.textContent = 'قيد التشغيل: ' + ch.name;
-        }, { once: true });      } else {
-        status.textContent = 'المتصفح لا يدعم البث المباشر';
+          video.play().catch(() => {});
+          setStatus('قيد التشغيل: ' + ch.name);
+        }, { once: true });
+      } else {
+        setStatus('المتصفح لا يدعم البث المباشر');
       }
+    }
+
+    function setStatus(text) {
+      document.getElementById('status').textContent = text;
     }
   </script>
 </body>
